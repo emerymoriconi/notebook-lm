@@ -1,0 +1,31 @@
+fastapi
+uvicorn[standard]
+
+# Banco de Dados
+sqlalchemy
+psycopg2-binary
+alembic
+
+# Upload e arquivos
+python-multipart
+pypdf
+
+# Variáveis de ambiente
+python-dotenv
+
+# Segurança e autenticação
+passlib[bcrypt]
+python-jose
+
+# LangChain + Gemini
+langchain
+langchain-google-genai
+google-generativeai
+
+# Utilidades gerais
+pydantic
+pydantic-settings
+
+# Opcional mas recomendado
+httpx               # para chamadas http internas
+jinja2              # se futuramente quiser templates

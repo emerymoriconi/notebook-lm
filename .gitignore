@@ -1,0 +1,50 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.db
+
+# ---- Virtual Environment ----
+.venv/
+venv/
+ENV/
+env/
+
+# ---- FastAPI / Uvicorn ----
+*.log
+
+# ---- dotenv ----
+.env
+.env.*
+
+# ---- Alembic ----
+alembic/versions/*.pyc
+alembic/versions/*__pycache__/
+
+# ---- Uploaded Files ----
+storage/
+uploads/
+
+# ---- Cache ----
+.cache/
+*.cache
+
+# ---- IDEs ----
+.vscode/
+.idea/
+
+# ---- OS-specific ----
+.DS_Store
+Thumbs.db
+
+# ---- Migrations ----
+migrations/
+alembic.ini
+
+# ---- Byte-compiled ----
+*.egg-info/
+*.egg
+dist/
+build/
