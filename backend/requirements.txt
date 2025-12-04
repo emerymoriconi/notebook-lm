@@ -9,6 +9,7 @@ alembic
 # Upload e arquivos
 python-multipart
 pypdf
+PyPDF2
 
 # Variáveis de ambiente
 python-dotenv
