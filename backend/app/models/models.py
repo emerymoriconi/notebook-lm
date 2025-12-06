@@ -41,11 +41,9 @@ class Summary(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     summary_text = Column(Text)
-    is_consolidated = Column(Integer)  # 0 = não, 1 = sim
+    file_ids = Column(String)
+    is_consolidated = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    # Para resumos múltiplos (salvo como string JSON ou IDs concatenados)
-    file_ids = Column(String)  # ex: "1,4,10"
 
     user_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="summaries")

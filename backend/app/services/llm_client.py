@@ -24,19 +24,14 @@ def get_llm():
 
 # Função que gera resumo
 def generate_summary(text: str) -> str:
-    """
-    Envia texto para o LLM e retorna um resumo em português.
-    Tratamento total de erros da API.
-    """
     if not text or len(text.strip()) == 0:
         raise LLMError("Texto vazio recebido para sumarização.")
 
     llm = get_llm()
 
     prompt = f"""
-    Você é um assistente especializado em resumir PDFs acadêmicos.
-    Leia o texto abaixo e produza um resumo claro, objetivo e bem organizado.
-
+    Resuma o texto abaixo em um parágrafo claro, bem organizado e objetivo, em português, mantendo os pontos mais relevantes e integrando ideias de forma inteligente, fazendo conexões necessárias.
+    
     TEXTO:
     {text}
     """
