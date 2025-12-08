@@ -6,9 +6,10 @@ from app.core.database import get_db
 from app.core.config import settings
 from app.services.auth_service import get_current_user
 
+
 from app.models.models import File as FileModel
 from app.schemas.summary import SummaryOut, SummaryCreateMulti
-from app.services.summary import create_summary
+from app.services.summary import create_summary, get_summaries_by_user, get_summary_by_id
 from app.utils.pdf_reader import extract_pdf_text
 from app.services.llm_client import generate_summary
 
@@ -100,3 +101,30 @@ def summarize_multi_files(payload: SummaryCreateMulti,
     db.refresh(new_summary)
 
     return new_summary
+
+
+@router.get("/", response_model=list[SummaryOut])
+def list_summaries(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+
+    summaries = get_summaries_by_user(db, current_user.id)
+    return summaries
+
+
+@router.get("/{summary_id}", response_model=SummaryOut)
+def get_summary(
+    summary_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    summary = get_summary_by_id(db, summary_id)
+
+    if not summary:
+        raise HTTPException(404, "Resumo não encontrado")
+
+    if summary.user_id != current_user.id:
+        raise HTTPException(403, "Você não tem acesso a este resumo")
+
+    return summary
