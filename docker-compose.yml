@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: notebook_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=usuario 
+      - POSTGRES_PASSWORD=senha
+      - POSTGRES_DB=nome_do_banco
+    ports:
+      - "5432:5432"
+  backend:
+    build: ./backend
+    container_name: notebook_api
+    volumes:
+      - ./backend:/app #
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://usuario:senha@db:5432/nome_do_banco
+    depends_on:
+      - db
+    command: >
+      sh -c "alembic upgrade head && 
+             uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
+
+volumes:
+  postgres_data:
