@@ -13,6 +13,8 @@ class User(Base):
     username = Column(String(50), unique=True, index=True)
     email = Column(String(120), unique=True, index=True)
     password_hash = Column(String(256))
+    description = Column(Text, nullable=True)
+    profile_image = Column(String(300), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
