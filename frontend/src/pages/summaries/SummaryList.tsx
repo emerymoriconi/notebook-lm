@@ -26,20 +26,19 @@ export default function SummaryList() {
 
   const fetchData = useCallback(async () => {
     try {
-      // 1. Buscamos Resumos e Arquivos em paralelo para montar os nomes corretamente
       const [summariesData, filesData] = await Promise.all([
         SummaryService.listSummariesSummaryGet(),
         FilesService.listFilesFilesGet()
       ])
 
-      // 2. Criar um mapa de { id: "nome_do_arquivo.pdf" } para acesso rápido
+      // 2.{ id: "nome_do_arquivo.pdf" }
       const nameMap: Record<string, string> = {}
       filesData.forEach(f => {
-        nameMap[String(f.id)] = f.file_name // Ajuste para file_name conforme seu backend
+        nameMap[String(f.id)] = f.file_name
       })
       setFileNames(nameMap)
 
-      // 3. Ordenar por data (mais recente primeiro)
+      // 3. Ordenar por data 
       const sorted = summariesData.sort((a, b) => {
         return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
       })
@@ -62,7 +61,6 @@ export default function SummaryList() {
 
   const getSummaryTitle = (s: SummaryOut) => {
     if (isMulti(s)) return "Resumo Consolidado"
-    // Tenta pegar o nome do mapa, se não existir, mostra o ID
     return fileNames[s.file_ids] || `Arquivo #${s.file_ids}`
   }
 
