@@ -6,6 +6,7 @@ import Login from "./pages/auth/Login";
 import AppLayout from "./layouts/AppLayout";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import FilesList from "./pages/files/FilesList";
+import FileDetails from "./pages/files/FileDetails";
 
 const PrivateRoute = () => {
   const token = localStorage.getItem('access_token');
@@ -26,6 +27,7 @@ function App() {
             <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="/dashboard" element={<DashboardHome />} />
             <Route path="/files" element={<FilesList />} />
+            <Route path="/files/:id" element={<FileDetails />} />
             <Route path="/profile" element={<div className="text-white p-4">Perfil (Em breve)</div>} />
           </Route>
         </Route>
