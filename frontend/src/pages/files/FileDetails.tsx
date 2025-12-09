@@ -2,11 +2,14 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import ReactMarkdown from 'react-markdown' 
 import { FilesService, SummaryService, type FileOut, type SummaryOut } from "../../client"
+
+// Componentes UI
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Download, Sparkles, Copy, FileText, Calendar, HardDrive, CheckCircle2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog" // <--- Importante para o popup
+import { ArrowLeft, Download, Sparkles, Copy, FileText, Calendar, HardDrive, CheckCircle2, Eye, ExternalLink, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function FileDetails() {
@@ -14,23 +17,26 @@ export default function FileDetails() {
   const navigate = useNavigate()
   const { toast } = useToast()
   
-
   const fileId = Number(id)
 
   const [fileMetadata, setFileMetadata] = useState<FileOut | null>(null)
   const [summary, setSummary] = useState<SummaryOut | null>(null)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true)
   const [isLoadingSummary, setIsLoadingSummary] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  // Estado para controlar o Popup do PDF
+  const [isPdfOpen, setIsPdfOpen] = useState(false)
 
-  // 1. Buscar Metadados do Arquivo
+  // 1. Buscar Metadados e Carregar Blob
   const fetchFileMetadata = useCallback(async () => {
     if (!fileId) return
     try {
-
       const data = await FilesService.getFileMetadataFilesFileIdGet(fileId)
       setFileMetadata(data)
+      loadPdfBlob(fileId)
     } catch (error) {
       toast({ title: "Erro", description: "Arquivo não encontrado.", variant: "destructive" })
       navigate("/files")
@@ -39,20 +45,38 @@ export default function FileDetails() {
     }
   }, [fileId, navigate, toast])
 
+  const loadPdfBlob = async (id: number) => {
+    try {
+      const token = localStorage.getItem("access_token")
+      const baseUrl = import.meta.env.VITE_API_URL
+      
+      const response = await fetch(`${baseUrl}/files/${id}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      
+      if (!response.ok) throw new Error("Erro ao carregar PDF")
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      setPdfUrl(url)
+    } catch (error) {
+      console.error("Falha ao carregar visualização do PDF")
+    }
+  }
 
+  // 2. Verificar Resumo
   const checkExistingSummary = useCallback(async () => {
     if (!fileId) return
     setIsLoadingSummary(true)
     try {
       const allSummaries = await SummaryService.listSummariesSummaryGet()
-
       const existing = allSummaries.find(s => s.file_ids === String(fileId))
       
       if (existing) {
         setSummary(existing)
       }
     } catch (error) {
-      console.log("Nenhum resumo encontrado ou erro na busca")
+      console.log("Nenhum resumo encontrado")
     } finally {
       setIsLoadingSummary(false)
     }
@@ -61,14 +85,14 @@ export default function FileDetails() {
   useEffect(() => {
     fetchFileMetadata()
     checkExistingSummary()
+    return () => { if (pdfUrl) window.URL.revokeObjectURL(pdfUrl) }
   }, [fetchFileMetadata, checkExistingSummary])
 
-  // 3. Gerar Resumo com IA
+  // 3. Ações (Gerar, Baixar, Copiar)
   const handleGenerateSummary = async () => {
     setIsGenerating(true)
     try {
       const newSummary = await SummaryService.summarizeSingleFileSummarySinglePost(fileId)
-      
       setSummary(newSummary)
       toast({ title: "Pronto!", description: "Resumo gerado com sucesso." })
     } catch (error) {
@@ -78,32 +102,14 @@ export default function FileDetails() {
     }
   }
 
-  // 4. Download PDF
   const handleDownload = async () => {
-    if (!fileMetadata) return
-    try {
-      const token = localStorage.getItem("access_token")
-      const baseUrl = import.meta.env.VITE_API_URL
-      
-      const response = await fetch(`${baseUrl}/files/${fileId}/download`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (!response.ok) throw new Error("Falha no download")
-
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      // Usa file_name vindo do FileOut
-      a.download = fileMetadata.file_name 
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-    } catch (error) {
-      toast({ title: "Erro", description: "Não foi possível baixar o arquivo.", variant: "destructive" })
-    }
+    if (!fileMetadata || !pdfUrl) return
+    const a = document.createElement("a")
+    a.href = pdfUrl
+    a.download = fileMetadata.file_name 
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   const handleCopySummary = () => {
@@ -130,11 +136,7 @@ export default function FileDetails() {
   }
 
   if (isLoadingMetadata) {
-    return (
-      <div className="min-h-screen bg-slate-950 p-6 flex justify-center items-center">
-        <Skeleton className="h-12 w-12 rounded-full bg-slate-800" />
-      </div>
-    )
+    return <div className="min-h-screen bg-slate-950 p-6 flex justify-center items-center"><Skeleton className="h-12 w-12 rounded-full bg-slate-800" /></div>
   }
 
   if (!fileMetadata) return null
@@ -158,38 +160,49 @@ export default function FileDetails() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           
-          {/* Coluna Esquerda: Metadados */}
+          {/* Coluna Esquerda: Metadados e Ações */}
           <div className="lg:col-span-1">
             <Card className="bg-slate-900 border-slate-800 sticky top-6">
                 <CardHeader>
-                <CardTitle className="text-slate-200">Detalhes</CardTitle>
-                <CardDescription className="text-slate-400">Metadados do arquivo</CardDescription>
+                    <CardTitle className="text-slate-200">Detalhes do Arquivo</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                <div className="space-y-4">
-                    <div className="flex flex-col space-y-1">
-                        <span className="text-xs font-medium text-slate-500 uppercase">Nome</span>
-                        <p className="text-sm text-slate-200 break-all">{fileMetadata.file_name}</p>
-                    </div>
-                    <div className="flex flex-col space-y-1">
-                        <span className="text-xs font-medium text-slate-500 uppercase">Data</span>
-                        <div className="flex items-center gap-2 text-slate-200">
-                            <Calendar className="h-4 w-4 text-slate-500" />
-                            <span className="text-sm">{formatDate(fileMetadata.upload_date)}</span>
+                    {/* Metadados */}
+                    <div className="space-y-4">
+                        <div className="flex flex-col space-y-1">
+                            <span className="text-xs font-medium text-slate-500 uppercase">Nome</span>
+                            <p className="text-sm text-slate-200 break-all">{fileMetadata.file_name}</p>
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                            <span className="text-xs font-medium text-slate-500 uppercase">Data</span>
+                            <div className="flex items-center gap-2 text-slate-200">
+                                <Calendar className="h-4 w-4 text-slate-500" />
+                                <span className="text-sm">{formatDate(fileMetadata.upload_date)}</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                            <span className="text-xs font-medium text-slate-500 uppercase">Tamanho</span>
+                            <div className="flex items-center gap-2 text-slate-200">
+                                <HardDrive className="h-4 w-4 text-slate-500" />
+                                <span className="text-sm">{formatFileSize(fileMetadata.file_size)}</span>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex flex-col space-y-1">
-                        <span className="text-xs font-medium text-slate-500 uppercase">Tamanho</span>
-                        <div className="flex items-center gap-2 text-slate-200">
-                            <HardDrive className="h-4 w-4 text-slate-500" />
-                            <span className="text-sm">{formatFileSize(fileMetadata.file_size)}</span>
-                        </div>
-                    </div>
-                </div>
 
-                <Button onClick={handleDownload} variant="outline" className="w-full gap-2 border-slate-700 text-slate-300 hover:bg-slate-800">
-                    <Download className="h-4 w-4" /> Baixar PDF
-                </Button>
+                    <div className="space-y-3 pt-4 border-t border-slate-800">
+                        {/* Botão Principal de Visualizar */}
+                        <Button 
+                            onClick={() => setIsPdfOpen(true)} 
+                            className="w-full gap-2 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20"
+                        >
+                            <Eye className="h-4 w-4" /> Visualizar PDF
+                        </Button>
+
+                        {/* Botão Secundário de Download */}
+                        <Button onClick={handleDownload} variant="outline" className="w-full gap-2 border-slate-700 text-slate-300 hover:bg-slate-800">
+                            <Download className="h-4 w-4" /> Baixar Arquivo
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
           </div>
@@ -210,9 +223,9 @@ export default function FileDetails() {
                   <div className="rounded-full bg-blue-500/10 p-6 mb-6">
                     <Sparkles className="h-10 w-10 text-blue-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-100 mb-2">Gerar Resumo com IA</h3>
+                  <h3 className="text-2xl font-bold text-slate-100 mb-2">Resumo Inteligente</h3>
                   <p className="text-slate-400 max-w-md mb-8">
-                    Extraia os pontos principais automaticamente.
+                    A IA pode ler este documento e extrair os pontos principais para você.
                   </p>
                   <Button 
                     onClick={handleGenerateSummary} 
@@ -238,14 +251,9 @@ export default function FileDetails() {
                       <Copy className="h-4 w-4" /> Copiar
                     </Button>
                   </div>
-                  {summary.created_at && (
-                    <CardDescription className="text-slate-500">
-                        Gerado em {formatDate(summary.created_at)}
-                    </CardDescription>
-                  )}
+                  {summary.created_at && <CardDescription className="text-slate-500">Gerado em {formatDate(summary.created_at)}</CardDescription>}
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {/* Markdown Render */}
                   <div className="prose prose-invert prose-slate max-w-none prose-headings:text-slate-200 prose-p:text-slate-300 prose-strong:text-white prose-li:text-slate-300">
                     <ReactMarkdown>{summary.summary_text}</ReactMarkdown>
                   </div>
@@ -254,6 +262,34 @@ export default function FileDetails() {
             )}
           </div>
         </div>
+
+        {/* --- POPUP (MODAL) DO PDF --- */}
+        <Dialog open={isPdfOpen} onOpenChange={setIsPdfOpen}>
+            <DialogContent className="max-w-6xl w-[95vw] h-[90vh] bg-slate-950 border-slate-800 p-0 flex flex-col">
+                <DialogHeader className="px-6 py-4 border-b border-slate-800 bg-slate-900">
+                    <DialogTitle className="flex items-center gap-2 text-slate-100">
+                        <FileText className="h-5 w-5 text-blue-400" />
+                        {fileMetadata.file_name}
+                    </DialogTitle>
+                </DialogHeader>
+                
+                <div className="flex-1 bg-slate-900/50 w-full h-full relative">
+                    {pdfUrl ? (
+                        <iframe 
+                            src={`${pdfUrl}#toolbar=0&view=FitH`} 
+                            className="w-full h-full"
+                            title="Leitor de PDF"
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                            <p>Carregando documento seguro...</p>
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   )
