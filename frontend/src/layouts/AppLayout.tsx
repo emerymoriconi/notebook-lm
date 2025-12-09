@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, FileText, User, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, User, LogOut, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AppLayout() {
@@ -20,9 +20,13 @@ export default function AppLayout() {
           <Link to="/dashboard" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition">
             <LayoutDashboard size={20} /> Dashboard
           </Link>
+          <Link to="/summaries" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition"> {/* Ajuste o href/to */}
+            <Sparkles size={20} /> Resumos
+          </Link>
           <Link to="/files" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition">
             <FileText size={20} /> Meus Arquivos
           </Link>
+          
           <Link to="/profile" className="flex items-center gap-2 px-4 py-2 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition">
             <User size={20} /> Perfil
           </Link>

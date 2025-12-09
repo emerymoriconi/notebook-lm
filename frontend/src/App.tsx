@@ -7,6 +7,7 @@ import AppLayout from "./layouts/AppLayout";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import FilesList from "./pages/files/FilesList";
 import FileDetails from "./pages/files/FileDetails";
+import SummaryList from "./pages/summaries/SummaryList";
 
 const PrivateRoute = () => {
   const token = localStorage.getItem('access_token');
@@ -28,6 +29,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardHome />} />
             <Route path="/files" element={<FilesList />} />
             <Route path="/files/:id" element={<FileDetails />} />
+            <Route path="/summaries" element={<SummaryList />} />
             <Route path="/profile" element={<div className="text-white p-4">Perfil (Em breve)</div>} />
           </Route>
         </Route>
