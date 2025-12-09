@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 
-// Importações
-import Login from "./pages/auth/Login"; // Esse arquivo agora cuida dos dois
+
+import Login from "./pages/auth/Login"; 
 import AppLayout from "./layouts/AppLayout";
 import DashboardHome from "./pages/dashboard/DashboardHome";
+import FilesList from "./pages/files/FilesList";
 
-// ... (PrivateRoute mantém igual)
 const PrivateRoute = () => {
   const token = localStorage.getItem('access_token');
   return token ? <Outlet /> : <Navigate to="/login" />;
@@ -25,7 +25,7 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="/dashboard" element={<DashboardHome />} />
-            <Route path="/files" element={<div className="text-white p-4">Lista de Arquivos (Em breve)</div>} />
+            <Route path="/files" element={<FilesList />} />
             <Route path="/profile" element={<div className="text-white p-4">Perfil (Em breve)</div>} />
           </Route>
         </Route>
