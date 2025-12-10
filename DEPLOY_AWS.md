@@ -22,7 +22,7 @@ services:
   backend:
     # BACKEND: Baixa a imagem pronta do Docker Hub (Rápido)
     # ATENÇÃO: Confirme se 'seu-usuario' está correto aqui
-    image: seu-usuario/notebook-backend:latest
+    image: wesleyufpi/notebook-backend:latest
     container_name: notebook_api
     volumes:
       - ./storage_prod:/app/storage
