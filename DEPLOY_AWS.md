@@ -7,8 +7,6 @@ Precisamos alterar a configuração do **frontend** para usar `build` (construir
 Substitua o conteúdo de `docker-compose.prod.yml`:
 
 ```yaml
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
