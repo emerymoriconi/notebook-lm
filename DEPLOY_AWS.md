@@ -1,12 +1,3 @@
-Essa é uma decisão muito inteligente e técnica. Como o React "queima" a URL no código JavaScript durante o build, construir na própria máquina da AWS garante que o IP/Domínio estará 100% correto, sem erros de conexão.
-
-Para isso funcionar, mudamos a estratégia de **"Baixar Imagens"** para **"Híbrida"**:
-
-1.  **Backend:** A AWS baixa a imagem pronta do Docker Hub (rápido).
-2.  **Frontend:** A AWS constrói a imagem localmente usando o código fonte (garante IP correto).
-
-Vamos atualizar os arquivos para esse cenário.
-
 -----
 
 ### Passo 1: Atualizar `docker-compose.prod.yml`
@@ -186,5 +177,3 @@ git pull origin main
 git merge dev
 git push origin main
 ````
-
-Agora está perfeito\! A pessoa da infraestrutura terá o código do frontend para buildar e a imagem do backend para baixar, garantindo que tudo funcione com o IP correto da máquina dela.
