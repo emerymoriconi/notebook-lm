@@ -1,100 +1,190 @@
-☁️ Guia de Deploy AWS (Via Docker Hub)
-Este guia assume que você já lançou uma instância EC2 (Ubuntu) e tem a chave .pem para acesso SSH.
+Essa é uma decisão muito inteligente e técnica. Como o React "queima" a URL no código JavaScript durante o build, construir na própria máquina da AWS garante que o IP/Domínio estará 100% correto, sem erros de conexão.
 
-1. Conectar na Instância
-Abra seu terminal na pasta onde está a chave .pem:
+Para isso funcionar, mudamos a estratégia de **"Baixar Imagens"** para **"Híbrida"**:
 
-Bash
+1.  **Backend:** A AWS baixa a imagem pronta do Docker Hub (rápido).
+2.  **Frontend:** A AWS constrói a imagem localmente usando o código fonte (garante IP correto).
 
-# Ajuste as permissões da chave (se for Linux/Mac)
-chmod 400 chave-acesso.pem
+Vamos atualizar os arquivos para esse cenário.
 
-# Conecte (Troque pelo IP público da sua AWS)
-ssh -i "chave-acesso.pem" ubuntu@54.20.10.123
-2. Instalar Docker na AWS
-Ao logar, cole estes comandos para instalar o Docker (copie e cole o bloco todo):
+-----
 
-Bash
+### Passo 1: Atualizar `docker-compose.prod.yml`
 
-# Atualizar sistema
+Precisamos alterar a configuração do **frontend** para usar `build` (construir local) em vez de `image` (baixar pronto), mas mantemos o backend baixando do Hub.
+
+Substitua o conteúdo de `docker-compose.prod.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: notebook_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    restart: always
+
+  backend:
+    # BACKEND: Baixa a imagem pronta do Docker Hub (Rápido)
+    # ATENÇÃO: Confirme se 'seu-usuario' está correto aqui
+    image: seu-usuario/notebook-backend:latest
+    container_name: notebook_api
+    volumes:
+      - ./storage_prod:/app/storage
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - BACKEND_CORS_ORIGINS=${FRONTEND_URL}
+    depends_on:
+      - db
+    command: >
+      sh -c "alembic upgrade head && 
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    restart: always
+
+  frontend:
+    # FRONTEND: Constrói na hora (para pegar o IP da AWS corretamente)
+    build:
+      context: ./frontend
+      args:
+        # Pega a variável VITE_API_URL do arquivo .env da AWS
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: notebook_web
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  postgres_data:
+```
+
+-----
+
+### Passo 2: Atualizar o `DEPLOY_AWS.md`
+
+Como o Frontend precisa ser construído lá, a pessoa precisará do **código fonte**. Então, mudamos a instrução de "Copiar arquivos" para "Clonar o Repositório".
+
+Substitua o conteúdo de `DEPLOY_AWS.md` por este novo tutorial:
+
+````markdown
+# ☁️ Guia de Deploy AWS (Híbrido)
+
+Este guia realiza o deploy da aplicação NotebookLM. 
+* **Backend:** Baixado pronto do Docker Hub.
+* **Frontend:** Construído no servidor para configurar o IP correto.
+
+### 1. Preparar a Instância
+Conecte via SSH na sua instância Ubuntu:
+```bash
+ssh -i "chave.pem" ubuntu@SEU_IP_AWS
+````
+
+Instale o Docker e Docker Compose:
+
+```bash
 sudo apt-get update
-sudo apt-get install -y ca-certificates curl gnupg
-
-# Instalar Docker
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Dar permissão ao usuário ubuntu (para não usar sudo no docker)
+sudo apt-get install -y docker.io docker-compose-v2 git
 sudo usermod -aG docker ubuntu
-🔴 IMPORTANTE: Após rodar isso, digite exit para sair e conecte via SSH novamente para as permissões funcionarem.
+# Saia e entre novamente para aplicar as permissões
+exit
+```
 
-3. Transferir Arquivos de Configuração
-Você não precisa clonar o repositório inteiro com o código fonte. Você só precisa de 2 arquivos:
+### 2\. Baixar o Projeto
 
-docker-compose.prod.yml
+Reconecte no SSH e clone o repositório:
 
-.env (com as senhas de produção)
+```bash
+git clone [https://github.com/SEU-USUARIO/notebook-lm.git](https://github.com/SEU-USUARIO/notebook-lm.git)
+cd notebook-lm
+```
 
-Método Fácil (Criar arquivos direto lá):
+### 3\. Configurar Variáveis de Ambiente
 
-Crie a pasta do projeto:
+Crie o arquivo `.env` de produção:
 
-Bash
-
-mkdir app && cd app
-Crie o .env:
-
-Bash
-
+```bash
 nano .env
-Cole o conteúdo:
+```
 
-Ini, TOML
+**Cole este conteúdo (Ajuste o IP para o IP Público da AWS):**
 
+```ini
+# --- BANCO DE DADOS ---
 POSTGRES_USER=admin_aws
-POSTGRES_PASSWORD=senha_super_secreta
+POSTGRES_PASSWORD=senha_segura_aqui
 POSTGRES_DB=notebook_db
-# IP da AWS
-VITE_API_URL=http://54.20.10.123:8000
-FRONTEND_URL=http://54.20.10.123
 
-# Chaves secretas do Backend (Obrigatório)
-SECRET_KEY=gere_uma_chave_nova_aqui
+# --- INFRAESTRUTURA (Ajuste o IP abaixo!) ---
+# O Frontend usa essa URL para falar com o Back
+VITE_API_URL=[http://54.20.10.123:8000](http://54.20.10.123:8000)
+
+# O Backend usa essa URL para permitir conexão (CORS)
+FRONTEND_URL=[http://54.20.10.123](http://54.20.10.123)
+
+# --- CHAVES SECRETAS ---
+SECRET_KEY=invente_uma_chave_complexa
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
-GEMINI_API_KEY=sua_chave_do_google_aqui
-(Salve com Ctrl+O, Enter, e saia com Ctrl+X)
+GEMINI_API_KEY=sua_api_key_do_google
+```
 
-Crie o docker-compose.yml:
+*(Salve com Ctrl+O, Enter, Ctrl+X)*
 
-Bash
+### 4\. Rodar o Deploy
 
-nano docker-compose.yml
-Cole o conteúdo do seu arquivo docker-compose.prod.yml que criamos na Parte 1. (Salve e saia).
+Este comando vai baixar o Backend e compilar o Frontend com o IP que você definiu acima.
 
-4. Rodar a Aplicação
-Agora a mágica acontece. Como as imagens estão no Docker Hub, o servidor vai apenas baixá-las (rápido).
+```bash
+# Usa o arquivo de produção para subir os containers
+docker compose -f docker-compose.prod.yml up -d --build
+```
 
-Bash
+### 5\. Liberar Portas (AWS Security Group)
 
-docker compose up -d
-5. Configurar Segurança (Firewall AWS)
-Não esqueça de ir no painel da AWS (Security Groups) da sua instância e liberar as portas:
+No painel da AWS, libere a entrada para:
 
-SSH: 22 (Seu IP)
+  * **Porta 80 (HTTP):** Para acessar o site.
+  * **Porta 8000 (TCP):** Para a API funcionar.
 
-HTTP: 80 (Frontend - Qualquer lugar 0.0.0.0/0)
+### ✅ Concluído
 
-Custom TCP: 8000 (Backend - Qualquer lugar 0.0.0.0/0)
+Acesse `http://SEU_IP_AWS` no navegador.
 
-✅ Pronto!
-Acesse http://54.20.10.123 (sem porta) e sua aplicação estará rodando.
+````
+
+---
+
+### Passo 3: Salvar e Enviar para o Git
+
+Agora que o tutorial reflete a realidade (reconstruir o front), vamos salvar tudo na `main`.
+
+```bash
+# 1. Adiciona as alterações
+git add docker-compose.prod.yml DEPLOY_AWS.md
+
+# 2. Comita na branch atual
+git commit -m "docs: atualiza guia de deploy para build hibrido do frontend"
+
+# 3. Manda para a dev
+git checkout dev
+git pull origin dev
+git merge fase/03-frontend-base
+git push origin dev
+
+# 4. Manda para a main (Onde a pessoa da infra vai pegar)
+git checkout main
+git pull origin main
+git merge dev
+git push origin main
+````
+
+Agora está perfeito\! A pessoa da infraestrutura terá o código do frontend para buildar e a imagem do backend para baixar, garantindo que tudo funcione com o IP correto da máquina dela.
