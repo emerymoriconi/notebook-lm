@@ -1,77 +1,149 @@
-# 📑 Web Application for Document Summarization
+# 📚 NotebookLM Clone - Assistente de Estudo com IA
 
-Este repositório contém o código-fonte e a documentação para o protótipo de uma aplicação web de gerenciamento e análise de documentos PDF, com a principal funcionalidade de gerar resumos individuais e integrados utilizando modelos de Large Language Model (LLM).
+![Status](https://img.shields.io/badge/Status-Finalizado-success)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
+![AWS](https://img.shields.io/badge/Deploy-AWS-orange)
+![Python](https://img.shields.io/badge/Backend-FastAPI-green)
+![React](https://img.shields.io/badge/Frontend-React-blueviolet)
 
-O projeto atende a todas as especificações funcionais e técnicas definidas no escopo.
-
----
-
-## 🚀 Visão Geral do Protótipo
-
-O objetivo do projeto é desenvolver um protótipo de aplicação web que permita aos usuários gerenciar documentos PDF e gerar resumos a partir deles, utilizando o poder dos LLMs.
-
-### Funcionalidades Principais
-- **Autenticação e Autorização**: Registro e login de usuários.
-- **Gerenciamento de Arquivos**: Upload de documentos PDF (máximo de 50 MB por arquivo) e listagem/seleção de arquivos.
-- **Processamento de Documentos**:
-  - Geração de resumo de arquivo único.
-  - Geração de resumo integrado de múltiplos arquivos.
-- **Dashboard**: Interface principal para navegação, edição de perfil e acesso às funcionalidades.
+Este projeto é uma plataforma web desenvolvida como Trabalho de Conclusão de Disciplina (Tópicos de Computação Avançada). O sistema permite o upload de documentos PDF, gerenciamento de arquivos e geração de resumos inteligentes (individuais ou consolidados) utilizando Inteligência Artificial Generativa (LLM).
 
 ---
 
-## 🏗️ Arquitetura da Aplicação
+## 🚀 Funcionalidades Principais
 
-A aplicação segue uma arquitetura baseada em backend e frontend, integrada a serviços de LLM e utilizando a infraestrutura AWS para deploy.
+### 🔐 Autenticação e Perfil
+- Sistema completo de **Login e Registro** (JWT Authentication).
+- Gestão de perfil com edição de dados.
+- Segurança de rotas (Middleware de proteção).
 
-### 1. Backend
-O backend é responsável pela lógica de negócios, gerenciamento de dados e integração com o LLM.
+### 📂 Gestão de Arquivos
+- **Upload de PDFs** (limite de 50MB).
+- Listagem, visualização e download de arquivos.
+- Armazenamento persistente utilizando Volumes Docker.
 
-- **Tecnologia**: Python.
-- **Framework Web**: FastAPI.  
-- **Integração LLM**: LangChain para interagir com o modelo do Google Gemini.  
-- **Armazenamento de Dados (RF-TEC-002)**:
-  - Banco de dados PostgreSQL.
+### 🧠 Inteligência Artificial (LLM)
+- **Resumo Individual:** Gera uma análise detalhada de um único documento.
+- **Resumo Consolidado:** Seleciona múltiplos arquivos para criar um resumo unificado relacionando os conteúdos.
+- Integração com **gemini-2.5-flash** para processamento de linguagem natural.
 
-### 2. Frontend
-O frontend fornece a interface do usuário para interagir com a aplicação.
-
-- **Framework**: React.  
-
----
-
-## 🌐 Endpoints Principais (Exemplos)
-
-Embora os detalhes exatos dependam da implementação, a aplicação deve expor endpoints essenciais para suas funcionalidades:
-
-| Módulo         | Funcionalidade                      | Método HTTP | Rota (Exemplo)                | Descrição                                                    |
-|----------------|-------------------------------------|-------------|-------------------------------|--------------------------------------------------------------|
-| Autenticação   | Registro de Usuário (RF-001)        | POST        | `/api/auth/register`          | Cria uma nova conta de usuário.                              |
-| Autenticação   | Login (RF-001)                      | POST        | `/api/auth/login`             | Autentica o usuário e retorna um token.                      |
-| Arquivos       | Upload de PDF (RF-002)              | POST        | `/api/files/upload`           | Faz o upload de um novo documento PDF (<= 50 MB).            |
-| Arquivos       | Listagem de Arquivos (RF-003)       | GET         | `/api/files`                  | Retorna a lista de documentos do usuário.                    |
-| Processamento  | Resumo Único (RF-004)               | POST        | `/api/summarize/single`       | Gera e armazena o resumo para um arquivo.                    |
-| Processamento  | Resumo Múltiplo (RF-005)            | POST        | `/api/summarize/multiple`     | Gera e armazena o resumo integrado de múltiplos arquivos.    |
-| Dashboard      | Edição de Perfil (RF-006)           | PUT         | `/api/profile`                | Atualiza as informações do perfil do usuário.                |
-
-> Observação: autenticação por token (ex.: JWT) foi utilizada para proteger endpoints.
+### 📊 Dashboard
+- Visão geral de estatísticas (Total de arquivos, resumos gerados).
+- Acesso rápido aos últimos documentos e insights.
 
 ---
+
+## 🏗️ Arquitetura do Sistema
+
+O projeto utiliza uma arquitetura baseada em microsserviços containerizados, facilitando a escalabilidade e o deploy.
+
+### Diagrama de Comunicação
+```mermaid
+graph TD
+    User((Usuário))
+    Browser[Navegador / Frontend React]
+    LB[AWS / Nginx Reverse Proxy]
+    API[Backend FastAPI]
+    DB[(PostgreSQL)]
+    LLM[Google Gemini API]
+    Storage[File Storage / Volume]
+
+    User -->|Acessa HTTP:80| Browser
+    Browser -->|Requisição API HTTP:8000| API
+    
+    subgraph Docker Network
+        API -->|Lê/Escreve Dados| DB
+        API -->|Salva PDF/Img| Storage
+    end
+    
+    API -->|Envia Contexto + Prompt| LLM
+    LLM -->|Retorna Resumo| API
+````
+
+### Stack Tecnológica
+
+| Camada | Tecnologia | Descrição |
+| :--- | :--- | :--- |
+| **Frontend** | React + Vite | Interface SPA moderna e responsiva. |
+| **Estilização** | TailwindCSS + Shadcn/UI | Componentes visuais acessíveis e elegantes. |
+| **Backend** | Python + FastAPI | API REST performática e assíncrona. |
+| **Banco de Dados** | PostgreSQL | Persistência de dados relacionais. |
+| **ORM** | SQLAlchemy + Alembic | Modelagem de dados e migrações. |
+| **Infraestrutura** | Docker Compose | Orquestração dos containers. |
+| **Deploy** | AWS EC2 (Ubuntu) | Hospedagem em nuvem. |
+
+-----
+
+## 🔧 Pré-requisitos
+
+Para rodar localmente, você precisa ter instalado:
+
+  - [Docker](https://www.docker.com/) e Docker Compose.
+  - Git.
+
+-----
+
+## ⚡ Como Rodar Localmente (Passo a Passo)
+
+1.  **Clone o repositório**
+
+    ```bash
+    git clone [https://github.com/emerymoriconi/notebook-lm.git](https://github.com/emerymoriconi/notebook-lm.git)
+    cd notebook-lm
+    ```
+
+2.  **Configure as Variáveis de Ambiente**
+    Crie um arquivo `.env` na raiz do projeto:
+
+    ```env
+    # .env
+    POSTGRES_USER=usuario
+    POSTGRES_PASSWORD=senha
+    POSTGRES_DB=notebook_db
+
+    # Configurações Locais
+    VITE_API_URL=http://localhost:8000
+    FRONTEND_URL=http://localhost:5173
+    ```
+
+    *Nota: O Backend possui um `.env` próprio (`backend/.env`) onde devem estar as chaves secretas (`SECRET_KEY`, `GEMINI_API_KEY`).*
+
+3.  **Inicie a Aplicação**
+
+    ```bash
+    docker-compose up -d --build
+    ```
+
+4.  **Acesse**
+      - Frontend: `http://localhost:5173`
+      - Documentação API (Swagger): `http://localhost:8000/docs`
+
+-----
 
 ## ☁️ Deploy na AWS
 
-O deploy do protótipo foi realizado na Amazon Web Services (AWS) seguindo as especificações de infraestrutura.
+O projeto está configurado para um deploy híbrido e seguro na AWS:
 
-### 1. Infraestrutura
-- **VPC (INF-001)**: Configuração de uma Virtual Private Cloud (VPC) dedicada, com subnets públicas e privadas e tabelas de rotas configuradas.
-- **Grupos de Segurança (INF-002)**: Implementação de regras restritivas, permitindo apenas acesso HTTP/HTTPS (portas 80/443) e SSH restrito para administração.
-- **EC2 (INF-003)**: Instância EC2 utilizada para hospedar o servidor de aplicação. O tipo de instância foi escolhido para ser adequado à carga esperada, permitindo acesso público via Internet.
+1.  **Backend:** A imagem é baixada pré-compilada do **Docker Hub** para agilidade.
+2.  **Frontend:** É compilado **dentro da instância AWS** para garantir que as variáveis de ambiente (IP da API) sejam injetadas corretamente.
 
-### 2. Acesso à Aplicação
-- A aplicação está acessível publicamente via Internet.  
-- **URL de Acesso**: `http://3.144.236.184/login`
+Para detalhes completos de como subir a instância, configurar o Security Group e rodar o projeto em produção, consulte o guia dedicado:
 
----
+👉 **[GUIA DE DEPLOY AWS (DEPLOY\_AWS.md)](https://www.google.com/search?q=./DEPLOY_AWS.md)**
 
-**Licença e Créditos**  
-Autores: Émery Freitas Moriconi e Wesley de Sousa Coutinho.
+-----
+
+## 👥 Equipe
+
+Projeto desenvolvido por:
+
+  - **[Wesley de Sousa Coutinho]**
+  - **[Émery Moriconi Freitas]**
+
+-----
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](https://www.google.com/search?q=LICENSE) para mais detalhes.
+
+````
