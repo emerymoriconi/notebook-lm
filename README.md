@@ -33,6 +33,36 @@ Este projeto é uma plataforma web desenvolvida como Trabalho de Conclusão de D
 
 ---
 
+## 📸 Screenshots
+
+Aqui está uma visão geral das funcionalidades do sistema em funcionamento na AWS.
+
+### 1. Autenticação e Perfil
+O sistema conta com login seguro (JWT) e personalização de perfil com upload de imagem.
+
+| Tela de Login | Edição de Perfil |
+|:---:|:---:|
+| ![Login](./screenshots/login.png) | ![Perfil](./screenshots/profile.png) |
+
+### 2. Dashboard e Upload
+Visão geral das estatísticas e área para envio de documentos PDF com persistência de dados.
+
+![Dashboard](./screenshots/dashboard.png)
+
+### 3. Geração de Resumos (IA)
+Integração com o Google Gemini para gerar insights rápidos sobre os documentos.
+
+| Upload de Arquivo | Resumo Gerado |
+|:---:|:---:|
+| ![Upload](./screenshots/upload.png) | ![Resumo](./screenshots/summary.png) |
+
+### 4. Documentação da API (Swagger UI)
+O Backend FastAPI gera automaticamente uma documentação interativa, permitindo testar rotas e visualizar esquemas de dados.
+
+![Swagger UI](./screenshots/swagger.png)
+
+
+
 ## 🏗️ Arquitetura do Sistema
 
 O projeto utiliza uma arquitetura baseada em microsserviços containerizados, facilitando a escalabilidade e o deploy.
