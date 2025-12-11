@@ -8,6 +8,15 @@
 
 Este projeto é uma plataforma web desenvolvida como Trabalho de Conclusão de Disciplina (Tópicos de Computação Avançada). O sistema permite o upload de documentos PDF, gerenciamento de arquivos e geração de resumos inteligentes (individuais ou consolidados) utilizando Inteligência Artificial Generativa (LLM).
 
+> ⚠️ **Contexto de Desenvolvimento (MVP Acadêmico)**
+>
+> Este projeto foi desenvolvido dentro de um *timebox* acadêmico restrito. Para garantir a entrega de um **MVP (Produto Mínimo Viável)** funcional e robusto, algumas decisões de arquitetura priorizaram a agilidade e a redução de custos de infraestrutura:
+>
+> 1.  **Persistência de Arquivos:** Optamos pelo uso de **Volumes Docker** (armazenamento em disco na EC2) em vez de serviços de Object Storage (como AWS S3), simplificando a camada de infraestrutura sem comprometer a funcionalidade de upload.
+> 2.  **Rede:** A aplicação opera em uma arquitetura simplificada de VPC, focando a segurança nas regras de **Security Groups** e no isolamento de containers via Docker Network, em vez de subnets privadas com NAT Gateways complexos.
+>
+> O foco principal deste trabalho foi demonstrar a **integração bem-sucedida de Microsserviços, Containerização (Docker), Deploy Cloud e Inteligência Artificial Generativa**.
+
 ---
 
 ## 🚀 Funcionalidades Principais
