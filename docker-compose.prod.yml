@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:15-alpine
     container_name: notebook_db
+    ports:
+      - "8000:8000"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
