@@ -168,7 +168,7 @@ O projeto está configurado para um deploy híbrido e seguro na AWS:
 
 Para detalhes completos de como subir a instância, configurar o Security Group e rodar o projeto em produção, consulte o guia dedicado:
 
-👉 **[GUIA DE DEPLOY AWS (DEPLOY\_AWS.md)](https://www.google.com/search?q=./DEPLOY_AWS.md)**
+👉 **[GUIA DE DEPLOY AWS (DEPLOY\_AWS.md)](./DEPLOY_AWS.md)**
 
 -----
 
