@@ -81,30 +81,3 @@ No painel da AWS, libere a entrada para:
 
 Acesse `http://SEU_IP_AWS` no navegador.
 
-````
-
----
-
-### Passo 3: Salvar e Enviar para o Git
-
-Agora que o tutorial reflete a realidade (reconstruir o front), vamos salvar tudo na `main`.
-
-```bash
-# 1. Adiciona as alterações
-git add docker-compose.prod.yml DEPLOY_AWS.md
-
-# 2. Comita na branch atual
-git commit -m "docs: atualiza guia de deploy para build hibrido do frontend"
-
-# 3. Manda para a dev
-git checkout dev
-git pull origin dev
-git merge fase/03-frontend-base
-git push origin dev
-
-# 4. Manda para a main (Onde a pessoa da infra vai pegar)
-git checkout main
-git pull origin main
-git merge dev
-git push origin main
-````
