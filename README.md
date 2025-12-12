@@ -1,4 +1,4 @@
-# 📚 NotebookLM Clone - Assistente de Estudo com IA
+# 📚 NotebookLM - Assistente de Estudo com IA
 
 ![Status](https://img.shields.io/badge/Status-Finalizado-success)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
