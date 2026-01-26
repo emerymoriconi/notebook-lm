@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/Backend-FastAPI-green)
 ![React](https://img.shields.io/badge/Frontend-React-blueviolet)
 
-Este projeto é uma plataforma web desenvolvida como Trabalho de Conclusão de Disciplina (Tópicos de Computação Avançada). O sistema permite o upload de documentos PDF, gerenciamento de arquivos e geração de resumos inteligentes (individuais ou consolidados) utilizando Inteligência Artificial Generativa (LLM).
+Este projeto é uma plataforma web desenvolvida como Trabalho de Conclusão de Disciplina (Tópicos em Computação Aplicada). O sistema permite o upload de documentos PDF, gerenciamento de arquivos e geração de resumos inteligentes (individuais ou consolidados) utilizando Inteligência Artificial Generativa (LLM).
 
 > ⚠️ **Contexto de Desenvolvimento (MVP Acadêmico)**
 >
