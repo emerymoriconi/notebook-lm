@@ -176,8 +176,8 @@ Para detalhes completos de como subir a instância, configurar o Security Group 
 
 Projeto desenvolvido por:
 
-  - **[Wesley de Sousa Coutinho]**
-  - **[Émery Moriconi Freitas]**
+  - **[Wesley de Sousa Coutinho](https://github.com/wesleycoutinhodev)**
+  - **[Émery Moriconi Freitas](https://github.com/emerymoricon)**
 
 -----
 
